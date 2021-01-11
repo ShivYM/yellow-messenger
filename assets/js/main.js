@@ -32,10 +32,15 @@ var surveyAns3 = 0;
 var surveyObj = {};
 var org_claimSubType;
 var org_sourceSystem = '';
+var currSeconds = 0;
 var survey_form = document.getElementById('customer_survey');
 
 survey_form.addEventListener('submit', submit_survey);
-
+$(document).ready(function (event) { 
+    let idleInterval = setInterval(timerIncrement, 1000);
+    $(this).mousemove(resetTimer);
+    $(this).keypress(resetTimer);
+});
 function getAccidentPage() {
     console.log('get accident page ');
     window.parent.postMessage(JSON.stringify({
@@ -70,6 +75,17 @@ function getDeathPage() {
             }
         })
     }), '*');
+}
+
+function resetTimer() {
+    currSeconds = 0;
+}
+
+function timerIncrement() {
+    currSeconds = currSeconds + 1;
+    if (currSeconds == 1800) {
+        window.top.location = 'http://www.philamlife.com'
+    }
 }
 
 function captcha() {
