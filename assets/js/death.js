@@ -26,6 +26,7 @@ var user_mobile;
 var ben_name_req_progress = '';
 let filesMap = {};
 var otpSubmitted = false;
+var isOtpPopShown = false;
 var file1 = document.getElementById('file_Upload_1');
 var file2 = document.getElementById('file_Upload_2');
 var file3 = document.getElementById('file_Upload_3');
@@ -720,6 +721,17 @@ function validateNotNumber(evt) {
     $(`#err_${id}`).show();
     return;
 }
+
+var timerVal = null;
+function otpTimerFunction() {
+    timerVal = setTimeout(() => {
+        if (isOtpPopShown == false) {
+            // disableDottedLoader();
+            document.getElementById('fallbackMessage').innerHTML = '<p id="otp-text">Your request is taking a while to get through due to intermittent connection. Stay with us! <br> Please refresh the page and re-submit your request to continue.</p>';
+            $("#fallbackMessagePopUp").modal("show");
+        }
+    }, 60000);
+}
 //to call preSubmit api
 function preSubmitCall() {
     // enableDottedLoader();
@@ -752,7 +764,7 @@ function preSubmitCall() {
         timer(2, 30).then(async () => {
         })
     })
-
+    otpTimerFunction();
     window.addEventListener('message', function (eventData) {
 
      
@@ -764,29 +776,32 @@ function preSubmitCall() {
                 console.log(event)
                 if (event.event_code == 'preSubmitResponse') { //sucess
                     console.log("receiving presubmit event in death")
-                    if (event.data.returnCode == '0' || event.data.retCode == '0') {
-                        // disableDottedLoader();
-                        clearTimeout(cleartime);
-                        timer(30, 35).then(async () => {
-                        $("#step2").addClass("done");
-                        $("#step3_circle").addClass("md-step-step3-circle ");
-                        $("#step3_span").addClass("md-step3-span");
-                        $("#step3_reference").addClass("md-step3-span")
-                        if (otpSubmitted == false) { otpTimer(); } else {
-                            $('#requirements').hide();
-                            $('#process_confirmation').show();
+                    clearTimeout(timerVal);
+                    if (isOtpPopShown == false) {
+                        if (event.data.returnCode == '0' || event.data.retCode == '0') {
+                            // disableDottedLoader();
+                            clearTimeout(cleartime);
+                            timer(30, 35).then(async () => {
+                                $("#step2").addClass("done");
+                                $("#step3_circle").addClass("md-step-step3-circle ");
+                                $("#step3_span").addClass("md-step3-span");
+                                $("#step3_reference").addClass("md-step3-span")
+                                if (otpSubmitted == false) { otpTimer(); isOtpPopShown = true; } else {
+                                    $('#requirements').hide();
+                                    $('#process_confirmation').show();
+                                }
+
+                                /*  $("#step3").addClass("active");
+                                $("#step3>div").addClass("active"); */
+                                /*  $("#step3").addClass("done"); */
+
+
+                            });
                         }
-
-                        /*  $("#step3").addClass("active");
-                        $("#step3>div").addClass("active"); */
-                        /*  $("#step3").addClass("done"); */
-
-
-                        });
-                    }
-                    else {
-                        document.getElementById('returnMessage').innerHTML = event.data.returnMessage;
-                        $("#invalidReturnCode").modal("show");
+                        else {
+                            document.getElementById('returnMessage').innerHTML = event.data.returnMessage;
+                            $("#invalidReturnCode").modal("show");
+                        }
                     }
                 }
                 else {
